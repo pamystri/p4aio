@@ -1,5 +1,7 @@
 ####
 
+Current code:
+
 - registers DL teid, forwarding/encapsulating/decaspulation functions
 - current solution works when UEs are active, sending/receiving traffic, in order DL teid to get register in p4
 
