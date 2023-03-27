@@ -3,6 +3,7 @@
 Current code:
 
 - registers DL teid, forwarding/encapsulating/decaspulation functions
+- register entries preconfigue static entries for basic rules gnb to upf and teid register
 - current solution works when UEs are active, sending/receiving traffic, so that DL teid to registers in p4
 
 
