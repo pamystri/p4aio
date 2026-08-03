@@ -1,0 +1,37 @@
+sudo -u postgres psql -d private5g -c "
+WITH latest AS (
+  SELECT DISTINCT ON (logical_operation)
+    logical_operation,
+    payload
+  FROM raw_observation
+  ORDER BY logical_operation, received_at DESC
+)
+SELECT
+  logical_operation,
+  jsonb_object_agg(field, jsonb_typeof(value)) AS top_level_structure
+FROM latest
+CROSS JOIN LATERAL jsonb_each(payload) AS item(field, value)
+GROUP BY logical_operation;
+"
+
+--------------------------
+
+sudo -u postgres psql -d private5g -c "
+SELECT
+  jsonb_typeof(payload->'ue_list') AS ue_list_type,
+  jsonb_array_length(
+    CASE
+      WHEN jsonb_typeof(payload->'ue_list') = 'array'
+      THEN payload->'ue_list'
+      ELSE '[]'::jsonb
+    END
+  ) AS ue_count,
+  ARRAY(
+    SELECT jsonb_object_keys(payload->'ue_list'->0)
+  ) AS first_ue_fields,
+  jsonb_typeof(payload->'ue_list'->0->'cells') AS cells_type
+FROM raw_observation
+WHERE logical_operation = 'ue_get'
+ORDER BY received_at DESC
+LIMIT 1;
+"
