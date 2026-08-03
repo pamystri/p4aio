@@ -1,0 +1,38 @@
+ npm run web:build
+
+> private-5g-monitor@0.1.0 web:build
+> npm run build --workspace @private-5g-monitor/web
+
+
+> @private-5g-monitor/web@0.1.0 build
+> next build
+
+▲ Next.js 16.2.12 (Turbopack)
+
+  Creating an optimized production build ...
+✓ Compiled successfully in 21.7s
+  Running TypeScript  .Failed to type check.
+
+./src/components/common/page-header.tsx:5:11
+Type error: No overload matches this call.
+  Overload 1 of 2, '(props: { component: ElementType<any, keyof IntrinsicElements>; } & StackOwnProps & CommonProps & Omit<any, keyof CommonProps | keyof StackOwnProps>): Element | null', gave the following error.
+    Property 'component' is missing in type '{ children: (false | "" | 0 | 0n | Element | null | undefined)[]; direction: { xs: "column"; md: "row"; }; justifyContent: string; alignItems: { xs: string; md: string; }; spacing: number; mb: number; }' but required in type '{ component: ElementType<any, keyof IntrinsicElements>; }'.
+  Overload 2 of 2, '(props: DefaultComponentProps<StackTypeMap<{}, "div">>): Element | null', gave the following error.
+    Type '{ children: (false | "" | 0 | 0n | Element | null | undefined)[]; direction: { xs: "column"; md: "row"; }; justifyContent: string; alignItems: { xs: string; md: string; }; spacing: number; mb: number; }' is not assignable to type 'IntrinsicAttributes & StackOwnProps & CommonProps & Omit<DetailedHTMLProps<HTMLAttributes<HTMLDivElement>, HTMLDivElement>, keyof CommonProps | keyof StackOwnProps>'.
+      Property 'justifyContent' does not exist on type 'IntrinsicAttributes & StackOwnProps & CommonProps & Omit<DetailedHTMLProps<HTMLAttributes<HTMLDivElement>, HTMLDivElement>, keyof CommonProps | keyof StackOwnProps>'.
+
+  3 |
+  4 | export function PageHeader({ eyebrow, title, description, actions }: { eyebrow?: string; ti...
+> 5 |   return <Stack direction={{ xs: 'column', md: 'row' }} justifyContent="space-between" alig...
+    |           ^
+  6 |     <Box>{eyebrow && <Typography variant="overline" color="primary.main">{eyebrow}</Typogra...
+  7 |   </Stack>;
+  8 | }
+Next.js build worker exited with code: 1 and signal: null
+npm error Lifecycle script `build` failed with error:
+npm error code 1
+npm error path /opt/private-5g-monitor/releases/0.1.1/apps/web
+npm error workspace @private-5g-monitor/web@0.1.0
+npm error location /opt/private-5g-monitor/releases/0.1.1/apps/web
+npm error command failed
+npm error command sh -c next build
