@@ -1,22 +1,20 @@
- ue_list_type | ue_count |                                                                            first_ue_fields                                                                            | cells_type
---------------+----------+-----------------------------------------------------------------------------------------------------------------------------------------------------------------------+------------
- array        |        1 | {tac,imsi,ncgi,t3512,imeisv,ran_id,5g_tmsi,bearers,ran_plmn,rat_type,tac_plmn,amf_ue_id,ran_ue_id,registered,ue_aggregate_max_bitrate_dl,ue_aggregate_max_bitrate_ul} |
-(1 row)
-
-(END)
-
-
-
-
--------------------+------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
- stats             | {"cpu": "object", "utc": "number", "time": "number", "users": "object", "message": "string", "warning": "string", "counters": "object", "pdn_list": "array", "message_id": "string", "instance_id": "string", "ip_rx_bitrate": "number", "ip_tx_bitrate": "number", "gtp_rx_bitrate": "number", "gtp_tx_bitrate": "number", "ng_connections": "array", "s1_connections": "array", "emm_registered_ue_count": "number"}
- ue_get            | {"utc": "number", "time": "number", "message": "string", "ue_list": "array", "warning": "string", "message_id": "string"}
-(2 rows)
-
-(END) logical_operation |                                                                                                                                                                                                  top_level_structure                                                                          
--------------------+------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
- stats             | {"cpu": "object", "utc": "number", "time": "number", "users": "object", "message": "string", "warning": "string", "counters": "object", "pdn_list": "array", "message_id": "string", "instance_id": "string", "ip_rx_bitrate": "number", "ip_tx_bitrate": "number", "gtp_rx_bitrate": "number", "gtp_tx_bitrate": "number", "ng_connections": "array", "s1_connections": "array", "emm_registered_ue_count": "number"}
- ue_get            | {"utc": "number", "time": "number", "message": "string", "ue_list": "array", "warning": "string", "message_id": "string"}
-(2 rows)
-
-(END)
+sudo -u postgres psql -d private5g -c "
+UPDATE radio_target
+SET
+  config = '{
+    \"transport\": \"ws\",
+    \"path\": \"/\",
+    \"origin\": \"http://private-5g-monitor.local\",
+    \"tlsRejectUnauthorized\": true,
+    \"ueGet\": {
+      \"stats\": true
+    },
+    \"stats\": {
+      \"samples\": true,
+      \"rf\": true
+    }
+  }'::jsonb,
+  config_version = config_version + 1,
+  updated_at = now()
+WHERE id = 'TARGET_UUID';
+"
