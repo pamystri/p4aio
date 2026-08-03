@@ -1,0 +1,43 @@
+cd /opt/private-5g-monitor/releases/0.1.2
+
+GNB_URL="ws://192.168.53.20:9000/" node <<'NODE'
+const WebSocket = require('ws');
+
+const ws = new WebSocket(process.env.GNB_URL, {
+  handshakeTimeout: 5000,
+});
+
+const timeout = setTimeout(() => {
+  console.error('Timed out waiting for Amarisoft');
+  ws.terminate();
+  process.exitCode = 1;
+}, 8000);
+
+ws.on('open', () => {
+  console.log('WebSocket OPEN');
+});
+
+ws.on('message', (data) => {
+  console.log('MESSAGE:', data.toString());
+  clearTimeout(timeout);
+  ws.close();
+});
+
+ws.on('unexpected-response', (_request, response) => {
+  console.error('HTTP RESPONSE:', response.statusCode, response.statusMessage);
+  console.error('HEADERS:', response.headers);
+  response.resume();
+  clearTimeout(timeout);
+  process.exitCode = 1;
+});
+
+ws.on('error', (error) => {
+  console.error('WEBSOCKET ERROR:', error.message);
+  clearTimeout(timeout);
+  process.exitCode = 1;
+});
+
+ws.on('close', (code, reason) => {
+  console.log('CLOSED:', code, reason.toString());
+});
+NODE
