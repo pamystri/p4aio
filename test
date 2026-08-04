@@ -1,9 +1,17 @@
-      last_mme_seen_at      |      last_gnb_seen_at
----------------------+-----------------+--------------------------------------+--------------------------------------+----------------------------+----------------------------
- ue-012ab96ecf5a0866 | ran_ue_id:13252 | 4a93121e-7a4b-4f45-9921-b18ad6df4345 | b382b0f1-14bf-45be-96e7-87cb1274269d | 2026-08-04 12:21:53.737+00 | 2026-08-04 12:22:37.294+00
- ue-012ab96ecf5a0866 | ran_ue_id:13407 |                                      |                                      | 2026-08-04 12:24:01.819+00 |
- ue-012ab96ecf5a0866 | ran_ue_id:13411 |                                      |                                      | 2026-08-04 12:24:21.816+00 |
- ue-012ab96ecf5a0866 | ran_ue_id:13413 | 4a93121e-7a4b-4f45-9921-b18ad6df4345 | b382b0f1-14bf-45be-96e7-87cb1274269d | 2026-08-04 12:24:31.825+00 | 2026-08-04 12:25:24.489+00
- ue-012ab96ecf5a0866 | ran_ue_id:13414 |                                      |                                      | 2026-08-04 12:24:53.851+00 |
- ue-012ab96ecf5a0866 | ran_ue_id:13416 | 4a93121e-7a4b-4f45-9921-b18ad6df4345 | b382b0f1-14bf-45be-96e7-87cb1274269d | 2026-08-04 12:25:04.865+00 | 2026-08-04 12:25:57.521+00
- ue-012ab96ecf5a0866 | ran_ue_id:13417 | 4a93121e-7a4b-4f45-9921-b18ad6df4345 | b382b0f1-14bf-45be-96e7-87cb1274269d | 2026-08-04 13:09:04.539+00 | 2026-08-04 13:09:46.207+00
+psql "$DATABASE_URL" -P pager=off -c "
+SELECT
+  md.namespace || '.' || md.key AS metric,
+  count(*) AS observations,
+  count(ro.ue_id) AS linked_to_ue,
+  count(ro.cell_id) AS linked_to_cell,
+  min(COALESCE(ro.value_double, ro.value_integer::double precision)) AS minimum_value,
+  max(COALESCE(ro.value_double, ro.value_integer::double precision)) AS maximum_value,
+  max(ro.observed_at) AS latest
+FROM radio_observation ro
+JOIN metric_definition md ON md.id = ro.metric_definition_id
+WHERE ro.radio_target_id = '4a93121e-7a4b-4f45-9921-b18ad6df4345'
+  AND md.namespace = 'radio.ue'
+  AND md.key IN ('initial_ta', 'ul_path_loss', 'pusch_snr', 'epre')
+GROUP BY md.namespace, md.key
+ORDER BY metric;
+"
