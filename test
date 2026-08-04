@@ -1,13 +1,35 @@
 SELECT
-  s.name AS site,
-  s.latitude AS site_latitude,
-  s.longitude AS site_longitude,
-  rt.name AS target,
-  c.id AS cell_id,
+  ro.observed_at,
+  md.namespace || '.' || md.key AS metric,
+  u.pseudonym,
   c.display_name AS cell,
-  c.latitude AS cell_latitude,
-  c.longitude AS cell_longitude
-FROM site s
-JOIN radio_target rt ON rt.site_id = s.id
-LEFT JOIN cell c ON c.radio_target_id = rt.id
-WHERE rt.id = '4a93121e-7a4b-4f45-9921-b18ad6df4345';
+  COALESCE(
+    ro.value_double,
+    ro.value_integer::double precision
+  ) AS value
+FROM radio_observation ro
+JOIN metric_definition md ON md.id = ro.metric_definition_id
+LEFT JOIN ue u ON u.id = ro.ue_id
+LEFT JOIN cell c ON c.id = ro.cell_id
+WHERE ro.radio_target_id = '4a93121e-7a4b-4f45-9921-b18ad6df4345'
+  AND md.namespace = 'radio.ue'
+  AND md.key IN ('initial_ta', 'ul_path_loss', 'pusch_snr', 'epre')
+ORDER BY ro.observed_at DESC, metric
+LIMIT 20;
+
+
+-----------------------------
+
+
+
+SELECT
+  max(observed_at) AS latest_any_evidence,
+  max(observed_at) FILTER (
+    WHERE ue_id IS NOT NULL AND cell_id IS NOT NULL
+  ) AS latest_linked_evidence,
+  now() AS database_time
+FROM radio_observation ro
+JOIN metric_definition md ON md.id = ro.metric_definition_id
+WHERE ro.radio_target_id = '4a93121e-7a4b-4f45-9921-b18ad6df4345'
+  AND md.namespace = 'radio.ue'
+  AND md.key IN ('initial_ta', 'ul_path_loss');
