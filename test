@@ -1,7 +1,13 @@
-        metric         | observations | linked_to_ue | linked_to_cell | minimum_value | maximum_value |           latest
------------------------+--------------+--------------+----------------+---------------+---------------+----------------------------
- radio.ue.epre         |          325 |          302 |            325 |        -120.4 |        -112.7 | 2026-08-04 13:15:00.652+00
- radio.ue.initial_ta   |          325 |          302 |            325 |             5 |             5 | 2026-08-04 13:15:00.652+00
- radio.ue.pusch_snr    |          325 |          302 |            325 |            -2 |          10.4 | 2026-08-04 13:15:00.652+00
- radio.ue.ul_path_loss |          325 |          302 |            325 |            63 |          71.8 | 2026-08-04 13:15:00.652+00
-(4 rows)
+SELECT
+  s.name AS site,
+  s.latitude AS site_latitude,
+  s.longitude AS site_longitude,
+  rt.name AS target,
+  c.id AS cell_id,
+  c.display_name AS cell,
+  c.latitude AS cell_latitude,
+  c.longitude AS cell_longitude
+FROM site s
+JOIN radio_target rt ON rt.site_id = s.id
+LEFT JOIN cell c ON c.radio_target_id = rt.id
+WHERE rt.id = '4a93121e-7a4b-4f45-9921-b18ad6df4345';
