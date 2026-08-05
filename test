@@ -1,35 +1,101 @@
-SELECT
-  ro.observed_at,
-  md.namespace || '.' || md.key AS metric,
-  u.pseudonym,
-  c.display_name AS cell,
-  COALESCE(
-    ro.value_double,
-    ro.value_integer::double precision
-  ) AS value
-FROM radio_observation ro
-JOIN metric_definition md ON md.id = ro.metric_definition_id
-LEFT JOIN ue u ON u.id = ro.ue_id
-LEFT JOIN cell c ON c.id = ro.cell_id
-WHERE ro.radio_target_id = '4a93121e-7a4b-4f45-9921-b18ad6df4345'
-  AND md.namespace = 'radio.ue'
-  AND md.key IN ('initial_ta', 'ul_path_loss', 'pusch_snr', 'epre')
-ORDER BY ro.observed_at DESC, metric
-LIMIT 20;
+sudo install -d -o root -g private5g -m 0750 /etc/private-5g-monitor
 
-
------------------------------
+sudo nano /etc/private-5g-monitor/retention.sql
 
 
 
-SELECT
-  max(observed_at) AS latest_any_evidence,
-  max(observed_at) FILTER (
-    WHERE ue_id IS NOT NULL AND cell_id IS NOT NULL
-  ) AS latest_linked_evidence,
-  now() AS database_time
-FROM radio_observation ro
-JOIN metric_definition md ON md.id = ro.metric_definition_id
-WHERE ro.radio_target_id = '4a93121e-7a4b-4f45-9921-b18ad6df4345'
-  AND md.namespace = 'radio.ue'
-  AND md.key IN ('initial_ta', 'ul_path_loss');
+\set ON_ERROR_STOP on
+
+BEGIN;
+
+-- Location evidence is dependent on location estimates.
+DELETE FROM location_evidence
+WHERE location_estimate_id IN (
+    SELECT id
+    FROM location_estimate
+    WHERE estimated_at < now() - interval '7 days'
+);
+
+DELETE FROM location_estimate
+WHERE estimated_at < now() - interval '7 days';
+
+-- Parsed metrics and events.
+DELETE FROM radio_observation
+WHERE observed_at < now() - interval '7 days';
+
+DELETE FROM domain_event
+WHERE occurred_at < now() - interval '7 days';
+
+-- Raw API responses.
+DELETE FROM raw_observation
+WHERE received_at < now() - interval '7 days';
+
+-- Poll execution history. Delete only runs no longer referenced by retained data.
+DELETE FROM collection_run cr
+WHERE cr.started_at < now() - interval '7 days'
+  AND NOT EXISTS (
+      SELECT 1 FROM raw_observation ro
+      WHERE ro.collection_run_id = cr.id
+  )
+  AND NOT EXISTS (
+      SELECT 1 FROM radio_observation ob
+      WHERE ob.collection_run_id = cr.id
+  );
+
+COMMIT;
+
+VACUUM (ANALYZE) raw_observation;
+VACUUM (ANALYZE) radio_observation;
+VACUUM (ANALYZE) domain_event;
+VACUUM (ANALYZE) location_estimate;
+VACUUM (ANALYZE) location_evidence;
+VACUUM (ANALYZE) collection_run;
+
+
+----------------------------------------------------------------
+
+
+sudo -u postgres psql -d private5g -c '\d raw_observation'
+sudo -u postgres psql -d private5g -c '\d radio_observation'
+sudo -u postgres psql -d private5g -c '\d collection_run'
+
+sudo nano /etc/systemd/system/private-5g-monitor-retention.service
+
+
+--------------------------
+
+
+[Unit]
+Description=Private 5G Monitor seven-day database retention
+After=postgresql.service
+Requires=postgresql.service
+
+[Service]
+Type=oneshot
+User=postgres
+ExecStart=/usr/bin/psql --dbname=private5g --file=/etc/private-5g-monitor/retention.sql
+Nice=10
+IOSchedulingClass=best-effort
+IOSchedulingPriority=7
+
+
+-------------------------------
+
+
+sudo chown root:postgres /etc/private-5g-monitor/retention.sql
+sudo chmod 0640 /etc/private-5g-monitor/retention.sql
+
+
+sudo nano /etc/systemd/system/private-5g-monitor-retention.timer
+
+----------------------------------
+[Unit]
+Description=Run Private 5G Monitor retention daily
+
+[Timer]
+OnCalendar=*-*-* 03:15:00
+Persistent=true
+RandomizedDelaySec=10m
+
+[Install]
+WantedBy=timers.target
