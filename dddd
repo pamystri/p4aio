@@ -1,1 +1,14 @@
-Aug 19 07:46:10 5gpnm node[652984]: {"level":30,"time":1787125570157,"pid":652984,"hostname":"5gpnm","req":{"id":"97b128fc-f562-47d5-8ec9-3780d3a5317a","method":"GET","url":"/api/v1/collectors/status","query":{},"params":{"path":["collectors","status"]},"headers":{"host":"192.168.53.59","x-real-ip":"192.168.53.57","x-forwarded-for":"192.168.53.57","x-forwarded-proto":"http","connection":"close","user-agent":"Mozilla/5.0 (X11; Ubuntu; Linux x86_64; rv:153.0) Gecko/20100101 Firefox/153.0","accept":"application/json","accept-language":"en-GB,en;q=0.9","accept-encoding":"gzip, deflate","referer":"http://192.168.53.59/map","x-api-key":"[REDACTED]","priority":"u=4","pragma":"no-cache","cache-control":"no-cache"},"remoteAddress":"127.0.0.1","remotePort":46522},"res":{"statusCode":null,"headers":{"content-security-policy":"default-src 'self';base-uri 'self';font-src 'self' https: data:;form-action 'self';frame-ancestors 'self';img-src 'self' data:;object-src 'none';script-src 'self';script-src-attr 'none';style-src 'self' https: 'unsafe-inline';upgrade-insecure-requests","cross-origin-opener-policy":"same-origin","cross-origin-resource-policy":"same-origin","origin-agent-cluster":"?1","referrer-policy":"no-referrer","strict-transport-security":"max-age=31536000; includeSubDomains","x-content-type-options":"nosniff","x-dns-prefetch-control":"off","x-download-options":"noopen","x-frame-options":"SAMEORIGIN","x-permitted-cross-domain-policies":"none","x-xss-protection":"0","vary":"Origin","access-control-allow-credentials":"true","x-request-id":"97b128fc-f562-47d5-8ec9-3780d3a5317a"}},"responseTime":707,"msg":"request aborted"}
+set -a
+. /etc/private-5g-monitor/private-5g-monitor.env
+set +a
+
+curl --max-time 15 -sS \
+  -H "x-api-key: $API_AUTH_KEY" \
+  -w "\nHTTP=%{http_code} TIME=%{time_total}s\n" \
+  http://127.0.0.1:3000/api/v1/collectors/status |
+jq
+
+
+curl --max-time 15 -sS \
+  -H "x-api-key: $API_AUTH_KEY" \
+  http://127.0.0.1:3000/api/v1/collectors/status
