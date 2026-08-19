@@ -1,4 +1,15 @@
- set -a
+	19/08/2026, 08:09:30	
+Invalid `prisma.metricDefinition.upsert()` invocation: Transaction API error: Transaction not found. Transaction ID is invalid, refers to an old closed transaction Prisma doesn't have information about anymore, or was obtained before disconnecting.
+
+collector.poll_failed
+internal	radio · 7a612466-8
+
+
+
+
+
+
+set -a
 . /etc/private-5g-monitor/private-5g-monitor.env
 set +a
 
