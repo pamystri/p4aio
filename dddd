@@ -1,14 +1,6 @@
-set -a
-. /etc/private-5g-monitor/private-5g-monitor.env
-set +a
+warning
+19/08/2026, 09:25:07	
+Operation aborted
 
-curl --max-time 15 -sS \
-  -H "x-api-key: $API_AUTH_KEY" \
-  -w "\nHTTP=%{http_code} TIME=%{time_total}s\n" \
-  http://127.0.0.1:3000/api/v1/collectors/status |
-jq
-
-
-curl --max-time 15 -sS \
-  -H "x-api-key: $API_AUTH_KEY" \
-  http://127.0.0.1:3000/api/v1/collectors/status
+collector.poll_failed
+shutdown	radio · 5f18de4e-d
