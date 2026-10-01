@@ -1,0 +1,76 @@
+wget https://dl.google.com/go/go1.26.2.linux-amd64.tar.gz
+sudo tar -C /usr/local -zxvf go1.26.2.linux-amd64.tar.gz
+mkdir -p ~/go/{bin,pkg,src}
+# The following assume that your shell is bash:
+echo 'export GOPATH=$HOME/go' >> ~/.bashrc
+echo 'export GOROOT=/usr/local/go' >> ~/.bashrc
+echo 'export PATH=$PATH:$GOPATH/bin:$GOROOT/bin' >> ~/.bashrc
+echo 'export GO111MODULE=auto' >> ~/.bashrc
+source ~/.bashrc
+
+
+
+---------------------
+sudo apt -y update
+sudo apt -y install wget git
+
+-------------------
+
+mongo
+
+sudo apt install -y gnupg curl
+curl -fsSL https://www.mongodb.org/static/pgp/server-8.0.asc | \
+sudo gpg -o /usr/share/keyrings/mongodb-server-8.0.gpg --dearmor
+
+
+# Ubuntu 24.04 (Noble)
+echo "deb [ arch=amd64,arm64 signed-by=/usr/share/keyrings/mongodb-server-8.0.gpg ] https://repo.mongodb.org/apt/ubuntu noble/mongodb-org/8.2 multiverse" | sudo tee /etc/apt/sources.list.d/mongodb-org-8.2.list
+# Ubuntu 22.04 (Jammy)
+echo "deb [ arch=amd64,arm64 signed-by=/usr/share/keyrings/mongodb-server-8.0.gpg ] https://repo.mongodb.org/apt/ubuntu jammy/mongodb-org/8.2 multiverse" | sudo tee /etc/apt/sources.list.d/mongodb-org-8.2.list
+# Ubuntu 20.04 (Focal)
+echo "deb [ arch=amd64,arm64 signed-by=/usr/share/keyrings/mongodb-server-8.0.gpg ] https://repo.mongodb.org/apt/ubuntu focal/mongodb-org/8.2 multiverse" | sudo tee /etc/apt/sources.list.d/mongodb-org-8.2.list
+
+
+sudo apt update
+sudo apt install -y mongodb-org
+
+
+
+# using systemd
+sudo systemctl start mongod
+sudo systemctl status mongod
+sudo systemctl enable mongod    # optional
+# using init
+sudo service mongod start
+sudo service mongod status
+
+
+
+sudo apt -y update
+sudo apt -y install git gcc g++ cmake autoconf libtool pkg-config libmnl-dev libyaml-dev
+
+
+sudo sysctl -w net.ipv4.ip_forward=1
+sudo iptables -t nat -A POSTROUTING -o <dn_interface> -j MASQUERADE
+sudo iptables -A FORWARD -p tcp -m tcp --tcp-flags SYN,RST SYN -j TCPMSS --set-mss 1400
+sudo systemctl stop ufw
+sudo systemctl disable ufw # prevents the firewall from starting after a OS reboot
+
+
+
+cd ~
+git clone --recursive -b v4.2.3 -j `nproc` https://github.com/free5gc/free5gc.git
+cd free5gc
+
+
+
+git clone -b v0.9.14 https://github.com/free5gc/gtp5g.git
+cd gtp5g
+make
+sudo make install
+
+
+curl -fsSL https://deb.nodesource.com/setup_20.x | sudo -E bash - 
+sudo apt update
+sudo apt install -y nodejs
+sudo corepack enable # setup yarn automatically
